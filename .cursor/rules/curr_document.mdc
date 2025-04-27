@@ -1,0 +1,21 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Excel document structure
+
+[DI.xlsx](mdc:.cursor/rules/DI.xlsx) consider this working curriculum document. It has general information about the course. ALWAYS parse first sheet of the workbook. 
+
+These are:
+
+- Major type (Akademik Daraja): BAKALAVR
+- Major Duration (O'qish muddati): 4 yil
+- Type of education (Ta'lim shakli): Kunduzgi
+- Major code + title: 60610400 - Dasturiy injiniring. It is always below cell with value "Ta'lim yo'nalishi"
+
+
+
+
+
+In some curriculum documents they can be in other parts.

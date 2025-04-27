@@ -43,6 +43,13 @@ Next steps will involve:
 3. Setting up role-based permissions throughout the application
 4. Implementing specific features for each dashboard
 
+Implementing and testing Excel parsing for curriculum uploads in the curricula app. Extracting major type, duration, and education type from the first sheet of the uploaded Excel file, and outputting the parsed data to the console for verification. Added a test endpoint at /curricula/parse-excel/.
+
+Added a basic HTML template for uploading Excel files (curricula/upload_excel.html), and updated the view to render this template for GET requests.
+
+
+
+
 
 
 

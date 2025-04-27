@@ -66,9 +66,22 @@ The custom User model provides the foundation for role-based access control thro
   - Assign department heads automatically from professors with doctoral degrees
   - Set up an academic admin user
 
+## Curriculum Excel Parsing (2024-07-XX)
+
+- Implemented robust Excel parsing for curriculum metadata in `apps/curricula/parsing.py`.
+- The function `parse_curriculum_metadata(sheet)` extracts:
+  - Major type (Akademik Daraja)
+  - Major duration (O'qish muddati)
+  - Type of education (Ta'lim shakli)
+  - Major code + title (cell below "Ta'lim yo'nalishi")
+- Handles merged cells, dash/apostrophe variations, and missing values (returns None if not found).
+- Refactored the view to use this utility and return the parsed data as a dictionary in the HTTP response for testing.
+- Removed all debug/print statements from the view.
+
 ---
 
 **All features are implemented minimally and directly according to requirements. No overengineering or unnecessary abstraction is present. The codebase is clean, maintainable, and ready for further MVP development.**
+
 
 
 
