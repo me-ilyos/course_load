@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Course Load System</title>
+</head>
+<body>
+    <h1>Course Load System Login</h1>
+    
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
+    {% if form.errors %}
+    <p>Your username and password didn't match. Please try again.</p>
+    {% endif %}
+    
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label for="id_username">Username:</label>
+            <input type="text" name="username" id="id_username" required>
+        </div>
+        <div>
+            <label for="id_password">Password:</label>
+            <input type="password" name="password" id="id_password" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html> 

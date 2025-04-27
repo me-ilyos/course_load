@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Professor Dashboard</title>
+</head>
+<body>
+    <h1>Professor Dashboard</h1>
+    <p>Welcome, {{ user.first_name }} {{ user.last_name }}</p>
+    
+    <div>
+        <h2>Actions</h2>
+        <ul>
+            <li><a href="#">View My Course Load</a></li>
+            <li><a href="#">View Teaching Schedule</a></li>
+            <li><a href="#">Request Changes</a></li>
+        </ul>
+    </div>
+    
+    <div>
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+</body>
+</html> 

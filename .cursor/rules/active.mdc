@@ -3,3 +3,51 @@ description:
 globs: 
 alwaysApply: false
 ---
+# Active Development: Custom User Model
+
+# Current Active Development
+
+## Authentication System Implementation
+
+Currently implementing the authentication system for the Course Load application:
+
+- Created custom User model with three user types (Academic Admin, Department Head, Professor)
+- User authentication is now possible through username (as requested) with email uniqueness enforcement
+- Role-based permissions framework established through user type field
+
+The modified User model is ready for migrations.
+
+Currently implementing admin interface:
+- Created CustomUserAdmin that extends Django's UserAdmin
+- Added user_type to list_display, list_filter, and fieldsets
+- Customized add_fieldsets to include email and user_type during user creation
+
+Currently implementing authentication views and templates:
+- Created login view with role-based redirection
+- Created dashboard templates for each user type
+- Implemented authorization checks for each dashboard view
+- Set up URL routing for the authentication system
+- Added login/logout functionality
+
+Currently implementing department and professor models:
+- Created Department model with title, code, and department head fields
+- Created Professor model linked to User model with department association
+- Added admin interfaces for both models
+- Implemented logic to update user type when assigning department head
+- Updated Professor model with employment type and degree holder fields
+- Created management command to generate dummy users, departments, and professors with Marvel and DC characters
+
+Next steps will involve:
+1. Creating migrations for the models
+2. Running the dummy data command
+3. Setting up role-based permissions throughout the application
+4. Implementing specific features for each dashboard
+
+
+
+
+
+
+
+
+

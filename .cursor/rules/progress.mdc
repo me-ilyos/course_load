@@ -1,5 +1,84 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# Project Progress
+
+## Authentication System
+
+### Custom User Model (2023-07-10)
+
+- Implemented a custom user model in `apps/core/models.py` that extends Django's `AbstractUser`.
+- The model supports three user types:
+  - Academic Affairs Office Admin
+  - Department Head
+  - Professor
+- Authentication is done using the username field, while maintaining email uniqueness.
+- Custom `UserManager` was created to support user and superuser creation with both username and email.
+- Helper methods added to easily check user types:
+  - `is_academic_admin()`
+  - `is_department_head()`
+  - `is_professor()`
+- Updated Django settings to use the custom user model by adding `AUTH_USER_MODEL = 'core.User'` in `config/settings.py`.
+
+The custom User model provides the foundation for role-based access control throughout the application. Department Head role is assigned to professors who lead departments.
+
+### Admin Interface for User Model (2023-07-11)
+
+- Implemented `CustomUserAdmin` in `apps/core/admin.py` that extends Django's `UserAdmin`
+- Customized the admin interface to display and filter by user types
+- Created specialized fieldsets that include the user_type field
+- Added user_type to the user creation form
+- Made `date_joined` and `last_login` read-only to avoid admin errors
+
+### Authentication Views and Templates (2023-07-12)
+
+- Created login view in `apps/core/views.py` that redirects users based on their type
+- Implemented dashboard templates for each user type:
+  - Academic Affairs Office Admin (`academic_admin_dashboard.html`)
+  - Department Head (`department_head_dashboard.html`) 
+  - Professor (`professor_dashboard.html`)
+- Added role-based access control to ensure users can only access appropriate dashboards
+- Set up URL configuration in `apps/core/urls.py` for authentication endpoints
+- Integrated with Django's authentication system for login/logout functionality
+
+### Department and Professor Models (2023-07-15)
+
+- Created `Department` model in `apps/departments/models.py` with:
+  - Title field for department name
+  - Code field for unique department code
+  - Department head OneToOneField linked to User model
+  - Auto-updating department head user type on save
+- Created `Professor` model in `apps/professors/models.py` with:
+  - OneToOneField to User model for base user data
+  - ForeignKey to Department for department association
+  - Additional fields for employee ID and academic title
+  - Employment type field with fractional options (0.25 to 2.0)
+  - Boolean field for tracking doctoral degree holders
+- Implemented admin interfaces in respective admin.py files with:
+  - Optimized querysets using select_related
+  - Custom display methods for better admin experience
+  - Appropriate filters and search fields
+- Added management command in `apps/core/management/commands/create_dummy_data.py` to:
+  - Create departments for different academic disciplines
+  - Generate professor users with Marvel and DC character names
+  - Assign department heads automatically from professors with doctoral degrees
+  - Set up an academic admin user
+
+---
+
+**All features are implemented minimally and directly according to requirements. No overengineering or unnecessary abstraction is present. The codebase is clean, maintainable, and ready for further MVP development.**
+
+
+
+
+
+
+
+
+
+
+
+
+
