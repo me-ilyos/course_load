@@ -1,0 +1,44 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# University Course load distribution
+
+The project is to automate the course load management of a university. The entities are: academic affairs office, department head and professors.
+
+We have 3 types of users:
+
+- academic affairs office Admin (AAOA)
+- department head
+- professors
+
+## 1st Feature
+
+There is excel document file that contains data about specific major like:
+
+- Major type
+- Duration
+- Classification code
+- Major title
+- Classification
+
+and data about courses:
+
+- Course code
+- course type: mandatory and selective
+- course hours types and how many hours are allocated for the specific types: Lecture (L), Laboratory (LA), Practice (P), Seminar (S).
+- course credits and semesters wit credit for each semester.
+
+Curriculum document is uploaded by AAOA the courses must be created from given document. Courses with specified lesson types and specified hours for the types. Semester distribution and credit distribution.
+
+Then AAOA can attach a course to the department
+
+## 2nd Feature
+
+Department head sees all attached courses to the department and must be able to allocate to the professors. Overall a department head must be able to see available hours bank of the department, professors workload, and total hours of the department bank
+
+## 3nd Feature
+
+
+Professor should be able to see exact workload allocated by the department head.
