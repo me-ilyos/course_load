@@ -5,14 +5,16 @@ alwaysApply: false
 ---
 # Excel document structure
 
-[DI.xlsx](mdc:.cursor/rules/DI.xlsx) consider this working curriculum document. It has general information about the course. ALWAYS parse first sheet of the workbook. 
+[DI.xlsx](mdc:.cursor/rules/DI.xlsx) consider this working curriculum document. It has general information about the course. ALWAYS parse first sheet of the workbook. Be careful with parsing values are merged in cells. 
 
 These are:
 
 - Major type (Akademik Daraja): BAKALAVR
 - Major Duration (O'qish muddati): 4 yil
 - Type of education (Ta'lim shakli): Kunduzgi
-- Major code + title: 60610400 - Dasturiy injiniring. It is always below cell with value "Ta'lim yo'nalishi"
+- Major code + title: 60610400 - Dasturiy injiniring.
+
+Then we need to extract mandatory courses that a major has. The mandatory course always starts with a row that has a cell value "1.01", this row is the first mandatory course. The other courses are in subsequent rows. After that identifying cell we have course code and course title
 
 
 

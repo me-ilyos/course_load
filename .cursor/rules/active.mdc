@@ -47,6 +47,8 @@ Implementing and testing Excel parsing for curriculum uploads in the curricula a
 
 Added a basic HTML template for uploading Excel files (curricula/upload_excel.html), and updated the view to render this template for GET requests.
 
+Currently implementing and testing parsing of mandatory course codes and titles from the curriculum Excel file in the curricula app. This includes updating the parsing logic to extract a list of mandatory courses (code and title) and returning them in the parsed data dictionary.
+
 
 
 

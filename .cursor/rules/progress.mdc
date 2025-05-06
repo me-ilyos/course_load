@@ -77,6 +77,7 @@ The custom User model provides the foundation for role-based access control thro
 - Handles merged cells, dash/apostrophe variations, and missing values (returns None if not found).
 - Refactored the view to use this utility and return the parsed data as a dictionary in the HTTP response for testing.
 - Removed all debug/print statements from the view.
+- **NEW:** Now also parses all mandatory courses from the Excel file, starting from the row with '1.01'. For each mandatory course, extracts the course code and course title, and returns them as a list of dictionaries under the 'mandatory_courses' key in the parsed data dictionary. (Implemented in `apps/curricula/parsing.py`, function `parse_curriculum_metadata`).
 
 ---
 
