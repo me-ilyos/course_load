@@ -26,9 +26,9 @@
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column align-items-center text-center">
                         <i class="bi bi-journals display-4 text-primary mb-3"></i>
-                        <h5 class="card-title">O'quv Dasturlarini Boshqarish</h5>
+                        <h5 class="card-title">O'quv Rejalarini Boshqarish</h5>
                         <p class="card-text small text-muted">O'quv rejalari, fanlar va dasturlarni tahrirlash.</p>
-                        <a href="#" class="btn btn-outline-primary mt-auto"><i class="bi bi-pencil-square"></i> Boshqarish</a> {# Replace # with actual URL #}
+                        <a href="{% url 'curricula:curriculum_list' %}" class="btn btn-outline-primary mt-auto"><i class="bi bi-pencil-square"></i> Boshqarish</a> {# Replace # with actual URL #}
                     </div>
                 </div>
             </div>
@@ -65,18 +65,6 @@
                     </div>
                 </div>
             </div>
-
-            <div class="col">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body d-flex flex-column align-items-center text-center">
-                        <i class="bi bi-gear-wide-connected display-4 text-secondary mb-3"></i>
-                        <h5 class="card-title">Tizim Sozlamalari</h5>
-                        <p class="card-text small text-muted">Umumiy tizim parametrlari va konfiguratsiyasi.</p>
-                        <a href="#" class="btn btn-outline-secondary mt-auto"><i class="bi bi-sliders"></i> Sozlash</a> {# Replace # with actual URL #}
-                    </div>
-                </div>
-            </div>
-
         </div>
     </section>
 

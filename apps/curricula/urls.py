@@ -1,6 +1,10 @@
 from django.urls import path
-from .views import parse_curriculum_excel
+from .views import upload_excel, CurriculumListView, curriculum_create_view
+
+app_name = 'curricula'
 
 urlpatterns = [
-    path('parse-excel/', parse_curriculum_excel, name='parse_curriculum_excel'),
+    path('upload/', upload_excel, name='upload_excel'),
+    path('', CurriculumListView.as_view(), name='curriculum_list'),
+    path('create/', curriculum_create_view, name='curriculum_create'),
 ] 

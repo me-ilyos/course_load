@@ -99,6 +99,67 @@ The custom User model provides the foundation for role-based access control thro
     - Page-specific content is placed within the `{% block content %}`.
     - `{% block title %}`, `{% block breadcrumb %}`, and `{% block user_name %}` are defined with content relevant to the department page, using placeholders for dynamic Django context variables (e.g., `{{ department_name }}`, `{{ user.username }}`).
 
+## Finished Features
+
+### Curricula App Setup (Initial & Enhancements)
+
+- **Models (`apps/curricula/models.py`):**
+    - Created `Curriculum` model with fields: `code`, `title`, `start_year`, `degree` (Bachelors, Masters), `duration`, and `data` (JSONField for course info).
+    - Includes `__str__` method and basic `Meta` options for ordering and verbose names.
+    - Added `@property def academic_year_display(self)` to show `start_year` as `YYYY/YYYY+1` (e.g., "2023/2024").
+- **Admin (`apps/curricula/admin.py`):**
+    - Registered `Curriculum` model with a `CurriculumAdmin` class.
+    - Configured `list_display`, `list_filter`, and `search_fields` for the admin interface.
+- **Forms (`apps/curricula/forms.py`):**
+    - Created `CurriculumForm`, a `ModelForm` for the `Curriculum` model.
+    - Includes fields: `code`, `title`, `start_year`, `degree`, `duration`, `data`.
+    - Widgets are styled with Bootstrap classes (`form-control`, `form-select`).
+    - Provided Uzbek labels for form fields.
+    - Added custom validation: `clean_start_year` (validates year range) and `clean_duration` (validates duration based on degree type).
+- **Migrations:**
+    - Generated and applied initial migrations for the `Curriculum` model.
+- **Views (`apps/curricula/views.py`):**
+    - `CurriculumListView` (class-based view):
+        - Displays a list of all curricula, ordered by `title` and `start_year`.
+        - Uses `curricula/curriculum_list.html` template.
+        - Provides `curricula` (paginated list) and `form` (an instance of `CurriculumForm`) to the template context.
+        - Implements pagination (`paginate_by = 10`).
+    - `curriculum_create_view` (function-based view):
+        - Handles POST requests for creating a new curriculum using `CurriculumForm`.
+        - On successful save, redirects to `curriculum_list` with a success message.
+        - On form errors, redirects to `curriculum_list` and displays error messages (using Django messages framework).
+        - Redirects to `curriculum_list` for GET requests.
+    - `upload_excel` view stub added by user (renders `curricula/upload_excel.html`).
+    - `parse_curriculum_excel` view exists but is not currently mapped to a URL.
+- **Templates (`apps/curricula/templates/curricula/curriculum_list.html`):**
+    - Extends `base.html`.
+    - Displays curricula in a styled table. The "Boshlanish o'quv yili" column now uses `curriculum.academic_year_display`.
+    - Includes a button "Yangi o'quv dasturi qo'shish" that triggers a Bootstrap modal (`#addCurriculumModal`).
+    - **Modal Redesign (`#addCurriculumModal`):**
+        - Form fields are now rendered individually using a Bootstrap grid for a professional, structured layout (`col-md-*`).
+        - Includes `form-label` for labels, `form-text` for help texts, and placeholders for `invalid-feedback` for potential inline errors.
+        - `modal-dialog-scrollable` class added for better handling of long content.
+        - Footer buttons styled (outline for "Bekor qilish", icon for "Saqlash").
+    - Implements pagination display.
+    - Shows a message if no curricula are found; this message also includes a link to open the add curriculum modal.
+    - **Localization**: All user-facing text in this template (including form elements triggered from here) is in Uzbek.
+    - Added a section at the top of the content block to display Django messages (e.g., success/error alerts).
+- **URLs (`apps/curricula/urls.py`):**
+    - `app_name = 'curricula'` is set.
+    - URL pattern for `CurriculumListView`: `''` (e.g., `/curricula/`), named `curriculum_list`.
+    - URL pattern for `curriculum_create_view`: `'create/'`, named `curriculum_create`.
+    - URL pattern for `upload_excel` view: `'upload/'`, named `upload_excel` (points to the new simple rendering view).
+- **Project URLs (`config/urls.py`):**
+    - Confirmed that `apps.curricula.urls` is included in the main project URLs with the prefix `curricula/`.
+
+### Excel Upload (Existing - Status Update)
+- **Views (`apps/curricula/views.py`):**
+    - The `parse_curriculum_excel` view (which handles the actual parsing) is currently not linked to any URL due to the `upload_excel` URL pattern now pointing to a simple template rendering view.
+- **Parsing (`apps/curricula/parsing.py`):**
+    - Contains `parse_curricula_metadata` function.
+- **Templates (`apps/curricula/templates/curricula/upload_excel.html`):**
+    - Basic template for uploading an Excel file.
+
 ---
 
 **All features are implemented minimally and directly according to requirements. No overengineering or unnecessary abstraction is present. The codebase is clean, maintainable, and ready for further MVP development.**
