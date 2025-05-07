@@ -49,8 +49,6 @@ def department_head_dashboard(request):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('login')
     
-    # In a real app, you'd fetch the department the user is head of
-    # For now, we'll just pass a dummy context
     context = {
         'department': {'name': 'Sample Department'}
     }

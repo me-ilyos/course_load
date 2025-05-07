@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Department Dashboard - {{ department_name|default:'[Department Name]' }} | CourseLoad Pro{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="#">Home</a></li> {# Replace # with {% url 'dashboard_home_or_similar' %} #}
+    <li class="breadcrumb-item"><a href="#">Departments</a></li> {# Replace # with {% url 'department_list' %} #}
+    <li class="breadcrumb-item active" aria-current="page">{{ department_name|default:'[Department Name]' }}</li>
+{% endblock %}
+
+{% block user_name %}
+    {{ user.get_full_name|default:user.username|default:'[User Name]' }} {# Example: Django user object #}
+{% endblock %}
+
+{% block content %}
+<header class="mb-4">
+    <h1 class="display-5">Department of {{ department_name|default:'[Department Name]' }}</h1>
+    <p class="lead">Headed by: {{ department_head_name|default:'[Department Head Name]' }}</p>
+</header>
+
+<section id="department-summary" class="mb-5">
+    <h2><i class="bi bi-clipboard-data"></i> Department Summary</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card summary-card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-bank2"></i> Total Hours Bank</h5>
+                    <p class="card-text display-6">{{ total_hours|default:'[Total Hours]' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card summary-card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-person-check-fill"></i> Assigned Hours</h5>
+                    <p class="card-text display-6">{{ assigned_hours|default:'[Assigned Hours]' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card summary-card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-hourglass-split"></i> Available Hours</h5>
+                    <p class="card-text display-6">{{ available_hours|default:'[Available Hours]' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="course-management">
+    <h2><i class="bi bi-card-list"></i> Course Allocation</h2>
+    <p>Below is a list of courses attached to this department. You can allocate them to professors.</p>
+    
+    <table class="table table-hover table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Course Code</th>
+                <th scope="col">Course Title</th>
+                <th scope="col">Credits</th>
+                <th scope="col">Total Hours</th>
+                <th scope="col">Allocated Professor</th>
+                <th scope="col"><i class="bi bi-gear-fill"></i> Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {# Replace with Django template loop for courses #}
+            <!-- Example Row 1 (Repeat for each course) -->
+            <tr>
+                <th scope="row">1</th>
+                <td>CS101</td>
+                <td>Introduction to Computer Science</td>
+                <td>3</td>
+                <td>45</td>
+                <td>
+                    <select class="form-select form-select-sm" aria-label="Allocate professor">
+                        <option selected>Unassigned</option>
+                        <option value="1">Prof. Smith</option>
+                        <option value="2">Dr. Jones</option>
+                        <option value="3">Prof. Williams</option>
+                    </select>
+                </td>
+                <td class="action-buttons">
+                    <button type="button" class="btn btn-sm btn-primary"><i class="bi bi-check-lg"></i> Allocate</button>
+                    <button type="button" class="btn btn-sm btn-info"><i class="bi bi-eye"></i> Details</button>
+                </td>
+            </tr>
+            <!-- Example Row 2 -->
+            <tr>
+                <th scope="row">2</th>
+                <td>MA203</td>
+                <td>Calculus II</td>
+                <td>4</td>
+                <td>60</td>
+                <td>Prof. Davis</td>
+                <td class="action-buttons">
+                    <button type="button" class="btn btn-sm btn-success" disabled><i class="bi bi-check-circle-fill"></i> Allocated</button>
+                     <button type="button" class="btn btn-sm btn-warning"><i class="bi bi-arrow-repeat"></i> Re-assign</button>
+                    <button type="button" class="btn btn-sm btn-info"><i class="bi bi-eye"></i> Details</button>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="7" class="text-center">
+                    <em>No more courses to display or add new courses.</em>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<section id="professor-workload" class="mt-5">
+    <h2><i class="bi bi-people-fill"></i> Professor Workload Overview</h2>
+    <div class="row">
+        {# Replace with Django template loop for professors #}
+        <!-- Example Professor Card (Repeat for each professor) -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="bi bi-person-badge"></i> Prof. Smith
+                </div>
+                <div class="card-body">
+                    <p class="card-text"><i class="bi bi-journal-text"></i> Assigned Courses: 2</p>
+                    <p class="card-text"><i class="bi bi-clock-history"></i> Total Workload Hours: 75</p>
+                    <a href="#" class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i> View Details</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="bi bi-person-badge"></i> Dr. Jones
+                </div>
+                <div class="card-body">
+                    <p class="card-text"><i class="bi bi-journal-text"></i> Assigned Courses: 1</p>
+                    <p class="card-text"><i class="bi bi-clock-history"></i> Total Workload Hours: 45</p>
+                     <a href="#" class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i> View Details</a>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="bi bi-person-badge"></i> [Professor Name]
+                </div>
+                <div class="card-body">
+                    <p class="card-text"><i class="bi bi-journal-text"></i> Assigned Courses: [Number]</p>
+                    <p class="card-text"><i class="bi bi-clock-history"></i> Total Workload Hours: [Hours]</p>
+                     <a href="#" class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i> View Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{# Add any page-specific JavaScript here if needed #}
+<script>
+    // Example: console.log("Department page specific JS loaded");
+</script>
+{% endblock %} 

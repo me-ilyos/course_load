@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CourseLoad Pro{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            transition: padding-left 0.3s ease-in-out;
+        }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #343a40; /* Dark sidebar */
+            padding-top: 15px; /* Reduced top padding */
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: width 0.3s ease-in-out;
+            overflow-x: hidden; /* Prevent horizontal scrollbar during transition */
+        }
+        .sidebar .navbar-brand {
+            color: #f8f9fa;
+            margin-bottom: 15px; /* Reduced margin */
+            padding: 0 1.5rem;
+            font-size: 1.4rem; /* Slightly smaller brand */
+            white-space: nowrap; /* Keep brand on one line */
+        }
+        .sidebar .navbar-brand .brand-text {
+            opacity: 1;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .sidebar .navbar-brand .bi {
+            margin-right: 10px;
+        }
+        .sidebar .nav-link {
+            color: #adb5bd;
+            padding: 10px 1.5rem;
+            display: flex;
+            align-items: center;
+            white-space: nowrap; /* Keep text on one line */
+        }
+        .sidebar .nav-link .bi {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            flex-shrink: 0; /* Prevent icon from shrinking */
+        }
+        .sidebar .nav-link .link-text {
+            opacity: 1;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: #ffffff;
+            background-color: #495057;
+        }
+
+        /* Collapsed Sidebar Styles */
+        body.sidebar-collapsed .sidebar {
+            width: 70px; /* Width for icons only */
+        }
+        body.sidebar-collapsed .sidebar .navbar-brand .brand-text,
+        body.sidebar-collapsed .sidebar .nav-link .link-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        body.sidebar-collapsed .sidebar .navbar-brand {
+            padding: 0 1.25rem; /* Adjust padding for centered icon */
+            justify-content: center;
+        }
+        body.sidebar-collapsed .sidebar .nav-link {
+            justify-content: center; /* Center icons */
+            padding: 10px 0; /* Adjust padding */
+        }
+        body.sidebar-collapsed .sidebar .nav-link .bi {
+            margin-right: 0;
+            font-size: 1.3rem; /* Slightly larger icons when collapsed */
+        }
+
+        .main-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            margin-left: 260px; /* Default sidebar width */
+            width: calc(100% - 260px);
+            transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+        }
+        body.sidebar-collapsed .main-content-wrapper {
+            margin-left: 70px; /* Collapsed sidebar width */
+            width: calc(100% - 70px);
+        }
+
+        .top-bar {
+            background-color: #ffffff;
+            padding: 0.75rem 1.5rem; /* Keep padding for overall top-bar */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px; /* Fixed height for alignment */
+        }
+        .sidebar-toggle-btn {
+            font-size: 1.3rem; /* Adjusted size */
+            color: #495057;
+            background-color: transparent;
+            border: 1px solid transparent; /* For consistent sizing with hover/focus */
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+            margin-right: 10px; /* Reduced margin slightly */
+            line-height: 1; /* Ensure icon is centered vertically */
+        }
+        .sidebar-toggle-btn:hover {
+            background-color: #e9ecef;
+            border-color: #ced4da;
+            color: #007bff; 
+        }
+        .sidebar-toggle-btn:focus, .sidebar-toggle-btn:active {
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            border-color: #80bdff;
+        }
+        .top-bar .left-content {
+            display: flex;
+            align-items: center;
+        }
+        .top-bar .breadcrumb {
+            margin-bottom: 0;
+        }
+        .user-profile {
+            color: #495057;
+        }
+        .user-profile .bi {
+            margin-right: 8px;
+        }
+
+        .container-main {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            margin: 20px; /* Add margin around the main content block */
+            flex-grow: 1;
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+        }
+        .summary-card {
+            margin-bottom: 20px;
+        }
+        .action-buttons button {
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        h1, h2, h5 {
+            color: #343a40;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+
+        .footer {
+            background-color: #e9ecef;
+            color: #343a40;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 0.9rem;
+            width: 100%; 
+            transition: margin-left 0.3s ease-in-out; /* Ensure footer also transitions if margin changes */
+        }
+        /* If you want footer to be affected by sidebar collapse, add this */
+        /* body.sidebar-collapsed .footer {
+            margin-left: 70px;
+        } */
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body id="page-body"> 
+    <nav class="sidebar" id="sidebar">
+        <a class="navbar-brand d-flex align-items-center" href="#"> {# Consider using url templatetag here later e.g. {% url 'dashboard' %} #}
+            <i class="bi bi-building"></i> 
+            <span class="brand-text">CourseLoad</span>
+        </a>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="#"><i class="bi bi-house-door-fill"></i> <span class="link-text">Dashboard</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#"><i class="bi bi-journals"></i> <span class="link-text">Courses</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#"><i class="bi bi-people-fill"></i> <span class="link-text">Professors</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#"><i class="bi bi-sliders"></i> <span class="link-text">Departments</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#"><i class="bi bi-file-earmark-excel-fill"></i> <span class="link-text">Curriculum Upload</span></a>
+            </li>
+            <li class="nav-item mt-auto" style="padding: 0 1.5rem;">
+                 <hr class="text-secondary">
+                 <a class="nav-link" href="#"><i class="bi bi-gear-fill"></i> <span class="link-text">Settings</span></a>
+            </li>
+             <li class="nav-item">
+                 <a class="nav-link" href="#"><i class="bi bi-box-arrow-left"></i> <span class="link-text">Logout</span></a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="main-content-wrapper" id="main-content">
+        <div class="top-bar">
+            <div class="left-content">
+                <button class="sidebar-toggle-btn" id="sidebarToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        {% block breadcrumb %}
+                        <li class="breadcrumb-item"><a href="#">Home</a></li> {# Use url tag later #}
+                        <li class="breadcrumb-item active" aria-current="page">Page Title</li>
+                        {% endblock %}
+                    </ol>
+                </nav>
+            </div>
+            <div class="user-profile">
+                <i class="bi bi-person-circle"></i> {% block user_name %}[User Name]{% endblock %}
+            </div>
+        </div>
+
+        <div class="container-main">
+            {% block content %}
+            <!-- Page specific content will go here -->
+            {% endblock %}
+        </div> <!-- End of .container-main -->
+
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; {% now "Y" %} University CourseLoad Management. All rights reserved.</p>
+                <p><small>CourseLoad Pro v1.0</small></p>
+            </div>
+        </footer>
+    </div> <!-- End of .main-content-wrapper -->
+
+    <!-- Bootstrap JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const pageBody = document.getElementById('page-body');
+        const sidebarStateKey = 'sidebarCollapsed';
+
+        function applyInitialSidebarState() {
+            if (localStorage.getItem(sidebarStateKey) === 'true') {
+                pageBody.classList.add('sidebar-collapsed');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', applyInitialSidebarState);
+
+        if (sidebarToggle) { // Check if the toggle button exists
+            sidebarToggle.addEventListener('click', () => {
+                pageBody.classList.toggle('sidebar-collapsed');
+                if (pageBody.classList.contains('sidebar-collapsed')) {
+                    localStorage.setItem(sidebarStateKey, 'true');
+                } else {
+                    localStorage.setItem(sidebarStateKey, 'false');
+                }
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

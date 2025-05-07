@@ -79,6 +79,26 @@ The custom User model provides the foundation for role-based access control thro
 - Removed all debug/print statements from the view.
 - **NEW:** Now also parses all mandatory courses from the Excel file, starting from the row with '1.01'. For each mandatory course, extracts the course code and course title, and returns them as a list of dictionaries under the 'mandatory_courses' key in the parsed data dictionary. (Implemented in `apps/curricula/parsing.py`, function `parse_curriculum_metadata`).
 
+## UI Templates
+
+- **Created `templates/base.html`:**
+    - Based on the refined `department.html` structure (with sidebar, top bar, footer, and collapsible functionality).
+    - Generalizes the layout for use across the entire application.
+    - Includes Django template blocks:
+        - `{% block title %}`: For setting the page title.
+        - `{% block extra_head %}`: For page-specific CSS or meta tags.
+        - `{% block breadcrumb %}`: For customizing breadcrumb navigation in the top bar.
+        - `{% block user_name %}`: For displaying user-specific information in the top bar.
+        - `{% block content %}`: The main placeholder for page-specific content.
+        - `{% block extra_js %}`: For page-specific JavaScript.
+    - Sidebar toggle button style was refined for a more professional look.
+    - Copyright year in the footer now uses `{% now "Y" %}`.
+    - JavaScript for sidebar toggle now checks for the button's existence before adding an event listener.
+- **Refactored `templates/department.html`:**
+    - Now uses `{% extends 'base.html' %}` to inherit the common layout.
+    - Page-specific content is placed within the `{% block content %}`.
+    - `{% block title %}`, `{% block breadcrumb %}`, and `{% block user_name %}` are defined with content relevant to the department page, using placeholders for dynamic Django context variables (e.g., `{{ department_name }}`, `{{ user.username }}`).
+
 ---
 
 **All features are implemented minimally and directly according to requirements. No overengineering or unnecessary abstraction is present. The codebase is clean, maintainable, and ready for further MVP development.**

@@ -49,6 +49,24 @@ Added a basic HTML template for uploading Excel files (curricula/upload_excel.ht
 
 Currently implementing and testing parsing of mandatory course codes and titles from the curriculum Excel file in the curricula app. This includes updating the parsing logic to extract a list of mandatory courses (code and title) and returning them in the parsed data dictionary.
 
+Currently creating a base HTML template (`department.html`) for the Department Head UI using Bootstrap and CSS. This template includes sections for department summary, course allocation, and professor workload overview.
+
+Refined the `department.html` template to enhance its professional appearance. Added a fixed Bootstrap navbar, a sticky footer, incorporated Bootstrap Icons for visual cues, and improved overall styling with subtle shadows, better font, and spacing adjustments.
+
+Implemented a sidebar navigation layout for `department.html`. This includes a fixed left sidebar for main navigation, a main content area with a top bar (for breadcrumbs and user info), and an updated footer. CSS was heavily modified to support this new structure.
+
+Implemented a collapsible sidebar feature for `department.html`. This includes a toggle button, CSS for collapsed/expanded states with animations, and JavaScript to handle the toggle and persist the state using localStorage.
+
+Created `base.html` by generalizing `department.html`. Refined the sidebar toggle button style. Updated `department.html` to extend `base.html`, using Django template blocks for page-specific content, title, breadcrumbs, and user information.
+
+Styled the `apps/core/templates/core/login.html` page. Implemented a centered layout with Bootstrap, styled form elements with floating labels, used Bootstrap alerts for messages/errors, and added branding.
+
+Updated project name to NAMDTU in `apps/core/templates/core/login.html`. Awaiting clarification from user regarding a problem in a view.
+
+Translated static text in `apps/core/templates/core/login.html` to Uzbek. Set HTML lang attribute to 'uz'. Reviewed and handled placeholder tags. Added minor CSS fix for floating label autofill.
+
+Updated `apps/core/templates/core/academic_admin_dashboard.html` to extend `base.html`. Translated all static text to Uzbek, styled actions using Bootstrap cards with icons, and defined necessary template blocks.
+
 
 
 

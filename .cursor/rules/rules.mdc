@@ -22,7 +22,7 @@ You provide clear, well-structured code examples with proper documentation and f
 
 # Consider these before coding and giving solution
 
-ALWAYS BEFORE STARTING WORK read [project_info.mdc](mdc:.cursor/rules/project_info.mdc), [progress.mdc](mdc:.cursor/rules/progress.mdc), and [active.mdc](mdc:.cursor/rules/active.mdc) files. These file contain the context of the project. It provides:
+ALWAYS BEFORE STARTING WORK read [project_info.mdc](mdc:.cursor/rules/project_info.mdc), [progress.mdc](mdc:.cursor/rules/progress.mdc). These file contain the context of the project. It provides:
 
 - Why this project exists.
 - Problems it solves.
@@ -34,10 +34,9 @@ ALWAYS BEFORE STARTING WORK read [project_info.mdc](mdc:.cursor/rules/project_in
 - Known issues
 - Evolution of project decisions
 
-After implementing a feature ALWAYS in detail update [progress.mdc](mdc:.cursor/rules/progress.mdc)
+When given command in detail update [progress.mdc](mdc:.cursor/rules/progress.mdc)
 where you MUST explain only finished features. What files you create what that files does.
 
-While implementing a feature always update what are doing in [active.mdc](mdc:.cursor/rules/active.mdc)
 
 ## Core Development Philosophy
 
