@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Kafedralar - CourseLoad Pro{% endblock %}
+
+{% block extra_head_css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="#">Bosh sahifa</a></li> {# TODO: Replace # with {% url 'dashboard' %} if you have one #}
+<li class="breadcrumb-item active" aria-current="page">Kafedralar</li>
+{% endblock %}
+
+{% block user_name %}{{ user.username|default:'Foydalanuvchi' }}{% endblock %}
+
+{% block content %}
+
+{# Display Django Messages #}
+{% if messages %}
+    <div class="container mt-0 mb-3">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message|safe }} {# Use safe filter if messages contain HTML (e.g., for error lists) #}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Kafedralar Ro'yxati</h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+        <i class="bi bi-plus-circle-fill me-2"></i>Yangi kafedra qo'shish
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Barcha kafedralar</h5>
+    </div>
+    <div class="card-body">
+        {% if departments %}
+            <div class="table-responsive">
+                <table id="departmentsTable" class="table table-hover table-striped" style="width:100%;">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Kodi</th>
+                            <th scope="col">Nomi</th>
+                            <th scope="col">Kafedra Mudiri</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for department in departments %}
+                        <tr>
+                            <td><a href="{% url 'departments:department_detail' department.pk %}">{{ department.code }}</a></td>
+                            <td><a href="{% url 'departments:department_detail' department.pk %}">{{ department.title }}</a></td>
+                            <td>{{ department.department_head.get_full_name|default:"Tayinlanmagan" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                Kafedralar topilmadi. Siz <a href="#" class="alert-link" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">yangi kafedra qo'shishingiz</a> mumkin.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Department Modal -->
+<div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="post" action="{% url 'departments:department_add' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDepartmentModalLabel">Yangi kafedra qo'shish</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="{{ form.code.id_for_label }}" class="form-label">{{ form.code.label }}</label>
+                                {{ form.code }} 
+                                {% if form.code.help_text %}<div class="form-text">{{ form.code.help_text|safe }}</div>{% endif %}
+                                {% for error in form.code.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-8">
+                                <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                                {{ form.title }}
+                                {% if form.title.help_text %}<div class="form-text">{{ form.title.help_text|safe }}</div>{% endif %}
+                                {% for error in form.title.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+
+                            <div class="col-12">
+                                <label for="{{ form.department_head.id_for_label }}" class="form-label">{{ form.department_head.label }}</label>
+                                {{ form.department_head }}
+                                {% if form.department_head.help_text %}<div class="form-text">{{ form.department_head.help_text|safe }}</div>{% endif %}
+                                {% for error in form.department_head.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle-fill me-2"></i>Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.3/js/dataTables.bootstrap5.min.js"></script>
+<script>
+$(document).ready(function() {
+    new DataTable('#departmentsTable', {
+        responsive: true,
+        // language: { search: "Qidirish:" } // Uncomment to translate search placeholder
+    });
+});
+</script>
+{% endblock %} 

@@ -204,13 +204,13 @@
                 <a class="nav-link active" aria-current="page" href="#"><i class="bi bi-house-door-fill"></i> <span class="link-text">Dashboard</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#"><i class="bi bi-journals"></i> <span class="link-text">Courses</span></a>
+                <a class="nav-link" href="{% url 'curricula:curriculum_list' %}"><i class="bi bi-journals"></i> <span class="link-text">O'quv Rejalar</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#"><i class="bi bi-people-fill"></i> <span class="link-text">Professors</span></a>
+                <a class="nav-link" href="#"><i class="bi bi-people-fill"></i> <span class="link-text">Professorlar</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#"><i class="bi bi-sliders"></i> <span class="link-text">Departments</span></a>
+                <a class="nav-link" href="{% url 'departments:department_list' %}"><i class="bi bi-building"></i> <span class="link-text">Kafedralar</span></a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#"><i class="bi bi-file-earmark-excel-fill"></i> <span class="link-text">Curriculum Upload</span></a>

@@ -63,6 +63,14 @@ class User(AbstractUser):
         choices=USER_TYPE_CHOICES,
         default=PROFESSOR,
     )
+    department = models.ForeignKey(
+        'departments.Department', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='staff_members', # or 'users' or 'professors_in_department'
+        help_text=_("The department this user belongs to, if applicable.")
+    )
     date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
     
     # Keep username as the default field for login
