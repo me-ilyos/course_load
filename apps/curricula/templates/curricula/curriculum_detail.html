@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% load curriculum_extras %} {# Load custom template tags #}
+
+{% block title %}{{ curriculum.title }} - Tafsilotlar{% endblock %}
+
+{% block extra_head_css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.bootstrap5.min.css">
+<style>
+    td.editable-cell.saving { background-color: #fff3cd; } /* Light yellow */
+    td.editable-cell.save-success { background-color: #d1e7dd; transition: background-color 0.5s ease-out; } /* Light green */
+    td.editable-cell.save-error { background-color: #f8d7da; } /* Light red */
+    /* Ensure input inside DataTables cells doesn't get overly squished by default DataTables styling */
+    table.dataTable td input.form-control-sm {
+        height: auto; /* Or a specific small height */
+        padding: .2rem .4rem;
+        font-size: inherit; /* Or match cell font size */
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'curricula:curriculum_list' %}">O'quv rejalar</a></li>
+<li class="breadcrumb-item active" aria-current="page">{{ curriculum.title|truncatechars:50 }}</li>
+{% endblock %}
+
+{% block user_name %}{{ user.username|default:'Foydalanuvchi' }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">{{ curriculum.title }}</h1>
+    <div>
+        <a href="#" class="btn btn-outline-secondary me-2"><i class="bi bi-pencil-fill me-1"></i> Tahrirlash</a> {# TODO: Add Edit URL #}
+        <a href="#" class="btn btn-outline-danger"><i class="bi bi-trash-fill me-1"></i> O'chirish</a> {# TODO: Add Delete URL #}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Umumiy ma'lumotlar</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Kodi:</strong> {{ curriculum.code }}</p>
+                <p><strong>Nomi:</strong> {{ curriculum.title }}</p>
+                <p><strong>Boshlanish o'quv yili:</strong> {{ curriculum.academic_year_display }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Darajasi:</strong> {{ curriculum.get_degree_display }}</p>
+                <p><strong>Davomiyligi:</strong> {{ curriculum.duration }} yil</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if curriculum.data %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">O'quv reja fanlari</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="coursesTable" class="table table-bordered table-hover table-striped" style="width:100%;" data-curriculum-pk="{{ curriculum.pk }}">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th rowspan="2" class="align-middle">T/r</th>
+                        <th rowspan="2" class="align-middle">Fanning kodi</th>
+                        <th rowspan="2" class="align-middle" style="min-width: 250px;">Fanlarning nomi</th>
+                        <th rowspan="2" class="align-middle">Hajmi</th>
+                        <th colspan="5" class="text-center">Shundan auditoriya mashg'ulotlari (soat)</th>
+                        <th rowspan="2" class="align-middle">Mustaqil ta'lim (soat)</th>
+                        <th colspan="{{ curriculum.duration|multiply:2 }}" class="text-center">Kreditlar (semestrlar bo'yicha)</th>
+                        <th rowspan="2" class="align-middle">Jami kreditlar</th>
+                    </tr>
+                    <tr>
+                        <th>Jami</th>
+                        <th>Ma'ruza</th>
+                        <th>Amaliy</th>
+                        <th>Laboratoriya</th>
+                        <th>Seminar</th>
+                        {% for year in ""|center:curriculum.duration %}
+                            {% with forloop.counter as current_year %}
+                            <th scope="col">{{ current_year|multiply:2|add:"-1" }}-sem</th>
+                            <th scope="col">{{ current_year|multiply:2 }}-sem</th>
+                            {% endwith %}
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in curriculum.data %}
+                    <tr data-course-code="{{ course.course_code }}">
+                        <td class="text-center">{{ forloop.counter }}</td>
+                        <td>{{ course.course_code }}</td> {# Not editable, it's an identifier #}
+                        <td class="editable-cell" data-field-name="course_title">{{ course.course_title }}</td>
+                        <td class="text-center editable-cell calculated-total-hours" data-field-name="total_hours">{{ course.total_hours|default_if_none:"-" }}</td>
+                        {% with lecture=course.hours.lecture|default_if_none:0 practice=course.hours.practice|default_if_none:0 laboratory=course.hours.laboratory|default_if_none:0 seminar=course.hours.seminar|default_if_none:0 %}
+                        <td class="text-center calculated-total-classroom-hours">{{ lecture|add:practice|add:laboratory|add:seminar }}</td> {# Calculated #}
+                        <td class="text-center editable-cell" data-field-name="hours.lecture">{{ lecture|default_if_none:"-" }}</td>
+                        <td class="text-center editable-cell" data-field-name="hours.practice">{{ practice|default_if_none:"-" }}</td>
+                        <td class="text-center editable-cell" data-field-name="hours.laboratory">{{ laboratory|default_if_none:"-" }}</td>
+                        <td class="text-center editable-cell" data-field-name="hours.seminar">{{ seminar|default_if_none:"-" }}</td>
+                        {% endwith %}
+                        <td class="text-center editable-cell" data-field-name="hours.independent">{{ course.hours.independent|default_if_none:"-" }}</td>
+                        
+                        {% for year_idx in ""|center:curriculum.duration %}
+                            {% with forloop.counter0 as year_zero_indexed %}
+                                {% with semester1_key=year_zero_indexed|multiply:2|add:1 semester2_key=year_zero_indexed|multiply:2|add:2 %}
+                                <td class="text-center editable-cell" data-field-name="credits.{{ semester1_key }}">{{ course.credits|get_item:semester1_key|default_if_none:"-" }}</td>
+                                <td class="text-center editable-cell" data-field-name="credits.{{ semester2_key }}">{{ course.credits|get_item:semester2_key|default_if_none:"-" }}</td>
+                                {% endwith %}
+                            {% endwith %}
+                        {% endfor %}
+                        <td class="text-center editable-cell" data-field-name="total_credits">{{ course.total_credits|default_if_none:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        {% with num_semesters=curriculum.duration|multiply:2 %}
+                        {% with total_columns=11|add:num_semesters %}
+                        <td colspan="{{ total_columns }}" class="text-center">Fanlar haqida ma'lumot topilmadi.</td>
+                        {% endwith %}
+                        {% endwith %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info" role="alert">
+    Bu o'quv rejasi uchun fanlar ma'lumotlari kiritilmagan.
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.3/js/dataTables.bootstrap5.min.js"></script>
+<script>
+$(document).ready(function() {
+    const CURRICULUM_PK = $('#coursesTable').data('curriculum-pk');
+    var coursesTable = new DataTable('#coursesTable', {
+        responsive: true,
+        // "paging": true,
+        // "ordering": true,
+        // "info": true
+        // "language": { search: "Qidirish:" } 
+    });
+
+    // Function to get CSRF token (Django specific)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+    let originalContentGlobal = ''; // Used to revert cell on AJAX error
+
+    function saveCourseData(courseCode, fieldName, newValue, cellElement) {
+        console.log(`Saving: PK=${CURRICULUM_PK}, Course=${courseCode}, Field=${fieldName}, Value=${newValue}`);
+        cellElement.removeClass('save-success save-error').addClass('saving'); 
+
+        fetch(`/curricula/${CURRICULUM_PK}/update_course/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                course_code: courseCode,
+                field_name: fieldName,
+                new_value: newValue
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Try to parse error response for a message, otherwise use generic error
+                return response.json().then(errData => {
+                    throw new Error(errData.message || `Server error: ${response.status}`);
+                }).catch(() => {
+                    throw new Error(`Server error: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Save response:', data);
+            cellElement.removeClass('saving');
+            if (data.status === 'success') {
+                cellElement.addClass('save-success');
+                setTimeout(() => cellElement.removeClass('save-success'), 2000);
+                const field = cellElement.data('field-name');
+                const row = cellElement.closest('tr');
+                if (field.startsWith('hours.')) {
+                    if (['hours.lecture', 'hours.practice', 'hours.laboratory', 'hours.seminar'].includes(field)) {
+                        updateCalculatedTotalClassroomHours(row);
+                    }
+                    updateCalculatedTotalHours(row); // Update main Hajmi (total_hours)
+                }
+            } else {
+                // This case should ideally be caught by the !response.ok check above
+                cellElement.addClass('save-error'); 
+                alert(`Error saving data: ${data.message || 'Unknown error'}`); 
+                cellElement.text(originalContentGlobal); // Revert on error
+            }
+        })
+        .catch((error) => {
+            console.error('Error during save:', error);
+            cellElement.removeClass('saving');
+            cellElement.addClass('save-error');
+            alert(`An unexpected error occurred while saving: ${error.message}`);
+            cellElement.text(originalContentGlobal); // Revert on error
+        });
+    }
+
+    function updateCalculatedTotalClassroomHours(rowElement) {
+        let total = 0;
+        rowElement.find('td[data-field-name^="hours."]').each(function() {
+            const field = $(this).data('field-name');
+            if (field === 'hours.lecture' || field === 'hours.practice' || field === 'hours.laboratory' || field === 'hours.seminar') {
+                 const val = parseInt($(this).text().trim().replace('-', '0')) || 0;
+                 total += val;
+            }
+        });
+        rowElement.find('td.calculated-total-classroom-hours').text(total);
+    }
+
+    function updateCalculatedTotalHours(rowElement) {
+        let total = 0;
+        rowElement.find('td[data-field-name^="hours."]').each(function() {
+            const val = parseInt($(this).text().trim().replace('-', '0')) || 0;
+            total += val;
+        });
+        rowElement.find('td.calculated-total-hours').text(total);
+    }
+
+    // Make cells with class 'editable-cell' editable
+    $('#coursesTable tbody').on('click', 'td.editable-cell', function() {
+        var cell = $(this);
+        if (cell.find('input').length) {
+            return; // Already in edit mode
+        }
+
+        originalContentGlobal = cell.text().trim(); // Store original content before editing
+        var fieldName = cell.data('field-name');
+        var inputType = "text";
+        if (fieldName && (fieldName.includes('hours') || fieldName.includes('credits') || fieldName === 'total_hours')) {
+            inputType = "number";
+        }
+
+        var input = $('<' + 'input type="' + inputType + '" class="form-control form-control-sm" />');
+        input.val(originalContentGlobal === '-' ? '' : originalContentGlobal);
+        
+        cell.html(input);
+        input.focus();
+
+        input.on('blur keypress', function(e) {
+            if (e.type === 'blur' || (e.type === 'keypress' && e.which === 13)) { 
+                var newContent = $(this).val().trim();
+                var displayContent = newContent;
+                var valueToSave = newContent;
+
+                if (inputType === 'number') {
+                    if (newContent === '' || newContent === '-') {
+                        displayContent = '-';
+                        valueToSave = '0'; // Save empty numerics as '0' or as per backend expectation
+                    } else {
+                        // Ensure it's a valid number for display, otherwise it might look odd
+                        displayContent = isNaN(parseInt(newContent)) ? '-' : parseInt(newContent).toString(); 
+                        valueToSave = displayContent === '-' ? '0' : displayContent;
+                    }
+                }
+                cell.text(displayContent);
+                
+                var courseCode = cell.closest('tr').data('course-code');
+                
+                let originalValueForComparison = originalContentGlobal;
+                if (inputType === 'number') {
+                    originalValueForComparison = (originalValueForComparison === '-' || originalValueForComparison === '') ? '0' : originalValueForComparison;
+                }
+
+                if (originalValueForComparison !== valueToSave) {
+                    saveCourseData(courseCode, fieldName, valueToSave, cell);
+                } else {
+                     // If no change, remove any error/success styling
+                    cell.removeClass('save-success save-error');
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     
     # apps
     'apps.core',
-    'apps.curricula',
+    'apps.curricula.apps.CurriculaConfig',
     'apps.departments',
     'apps.professors',
 ]

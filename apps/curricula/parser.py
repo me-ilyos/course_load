@@ -4,7 +4,7 @@ from typing import Dict, List, Any
 
 def extract_mandatory_courses(excel_path: str) -> List[Dict[str, Any]]:
     """Extract mandatory courses from curriculum Excel document."""
-    df = pd.read_excel("Template.xlsx", header=None)
+    df = pd.read_excel(excel_path, header=None)
     
     rows = [(i, str(row.iloc[2]) if not pd.isna(row.iloc[2]) else "") for i, row in df.iterrows()]
     start_idx = next(i+1 for i, text in rows if text == "Majburiy fanlar")
