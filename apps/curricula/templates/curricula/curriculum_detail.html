@@ -268,7 +268,19 @@
 <script>
 $(document).ready(function() {
     const CURRICULUM_PK = $('table[data-curriculum-pk]').first().data('curriculum-pk');
-    const DEPARTMENTS_LIST = {{ departments_json_string|default_if_none:"[]"|safe }};
+    // Treat the Django output as a string and parse it
+    const departmentsJsonData = '{{ departments_json_string|default:"[]"|escapejs|safe }}'; 
+    let DEPARTMENTS_LIST = [];
+    try {
+        DEPARTMENTS_LIST = JSON.parse(departmentsJsonData);
+        if (!Array.isArray(DEPARTMENTS_LIST)) { // Ensure it's an array
+             console.error("Parsed departments data is not an array:", DEPARTMENTS_LIST);
+             DEPARTMENTS_LIST = [];
+        }
+    } catch (e) {
+        console.error("Error parsing departments JSON:", e, "Raw data:", departmentsJsonData);
+        // Keep DEPARTMENTS_LIST as [] on error
+    }
     
     function getCookie(name) {
         let cookieValue = null;

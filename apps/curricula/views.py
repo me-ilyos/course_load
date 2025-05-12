@@ -186,65 +186,72 @@ def update_course_data_view(request, pk):
         if not item_found or item_to_update is None: 
             return JsonResponse({'status': 'error', 'message': 'Course or slot not found.'}, status=404)
 
-        keys = field_name.split('.')
-        temp_target = item_to_update 
-        
-        for i, key_part in enumerate(keys[:-1]):
-            if key_part not in temp_target or not isinstance(temp_target[key_part], dict):
-                if key_part in ['hours', 'credits']:
-                    temp_target[key_part] = {}
-                else:
-                    return JsonResponse({'status': 'error', 'message': f'Invalid field path component: {key_part} in {field_name}'}, status=400)
-            temp_target = temp_target[key_part]
-        
-        original_field_value_at_key = temp_target.get(keys[-1])
-        
-        new_value = new_value_str 
-        
-        # Corrected is_numeric_field check for clarity and to avoid syntax error
-        last_key = keys[-1]
-        is_numeric_field = (last_key in ['total_hours', 'lecture', 'practice', 'laboratory', 'seminar', 'independent', 'total_credits']) or \
-                           (len(keys) > 1 and keys[0] == 'credits' and last_key.isdigit())
-        
-        is_hour_component = field_name.startswith('hours.') and last_key in ['lecture', 'practice', 'laboratory', 'seminar', 'independent']
-
+        # Special handling for department_id
         if field_name == 'department_id':
-            if not new_value_str.strip(): # Empty string or spaces only
-                new_value = None  # Intend to remove/clear the department_id
+            if not new_value_str.strip():  # Empty string or spaces only
+                if 'department_id' in item_to_update:
+                    del item_to_update['department_id']
+                if 'department_title' in item_to_update:
+                    del item_to_update['department_title']
             else:
                 try:
                     new_value = int(new_value_str)
+                    item_to_update['department_id'] = new_value
+                    # Get department title for display
+                    try:
+                        department = Department.objects.get(id=new_value)
+                        item_to_update['department_title'] = department.title
+                    except Department.DoesNotExist:
+                        item_to_update['department_title'] = None
                 except ValueError:
                     return JsonResponse({'status': 'error', 'message': 'Invalid department ID format. Must be an integer or empty.'}, status=400)
-        elif is_numeric_field:
-            try:
-                if new_value_str.strip() == '' or new_value_str.strip() == '-':
-                    new_value = 0 
-                else:
-                    new_value = int(new_value_str)
-            except ValueError:
-                return JsonResponse({'status': 'error', 'message': f'Invalid number format for {field_name}. Expected integer.'}, status=400)
-        elif field_name == 'course_title': 
-            new_value = str(new_value_str) # Ensure it's a string
-        # else: new_value remains new_value_str (e.g. for other potential string fields)
-
-        # Assign the new value or remove the key if new_value is None (specifically for department_id)
-        if new_value is None and field_name == 'department_id':
-            if last_key in temp_target:
-                del temp_target[last_key]
         else:
+            # Handle other fields
+            keys = field_name.split('.')
+            temp_target = item_to_update 
+            
+            for i, key_part in enumerate(keys[:-1]):
+                if key_part not in temp_target or not isinstance(temp_target[key_part], dict):
+                    if key_part in ['hours', 'credits']:
+                        temp_target[key_part] = {}
+                    else:
+                        return JsonResponse({'status': 'error', 'message': f'Invalid field path component: {key_part} in {field_name}'}, status=400)
+                temp_target = temp_target[key_part]
+            
+            original_field_value_at_key = temp_target.get(keys[-1])
+            
+            new_value = new_value_str 
+            
+            # Corrected is_numeric_field check for clarity and to avoid syntax error
+            last_key = keys[-1]
+            is_numeric_field = (last_key in ['total_hours', 'lecture', 'practice', 'laboratory', 'seminar', 'independent', 'total_credits']) or \
+                               (len(keys) > 1 and keys[0] == 'credits' and last_key.isdigit())
+            
+            is_hour_component = field_name.startswith('hours.') and last_key in ['lecture', 'practice', 'laboratory', 'seminar', 'independent']
+
+            if is_numeric_field:
+                try:
+                    if new_value_str.strip() == '' or new_value_str.strip() == '-':
+                        new_value = 0 
+                    else:
+                        new_value = int(new_value_str)
+                except ValueError:
+                    return JsonResponse({'status': 'error', 'message': f'Invalid number format for {field_name}. Expected integer.'}, status=400)
+            elif field_name == 'course_title': 
+                new_value = str(new_value_str) # Ensure it's a string
+
             temp_target[last_key] = new_value
-        
-        if is_hour_component and new_value != original_field_value_at_key: # Check for actual change
-            hours_data = item_to_update.get('hours', {})
-            new_total_hours = (
-                int(hours_data.get('lecture', 0) or 0) + 
-                int(hours_data.get('practice', 0) or 0) + 
-                int(hours_data.get('laboratory', 0) or 0) + 
-                int(hours_data.get('seminar', 0) or 0) + 
-                int(hours_data.get('independent', 0) or 0)
-            )
-            item_to_update['total_hours'] = new_total_hours
+            
+            if is_hour_component and new_value != original_field_value_at_key: # Check for actual change
+                hours_data = item_to_update.get('hours', {})
+                new_total_hours = (
+                    int(hours_data.get('lecture', 0) or 0) + 
+                    int(hours_data.get('practice', 0) or 0) + 
+                    int(hours_data.get('laboratory', 0) or 0) + 
+                    int(hours_data.get('seminar', 0) or 0) + 
+                    int(hours_data.get('independent', 0) or 0)
+                )
+                item_to_update['total_hours'] = new_total_hours
         
         curriculum.save()
         return JsonResponse({'status': 'success', 'message': 'Data updated successfully.', 'updated_item': item_to_update})
