@@ -22,4 +22,5 @@ urlpatterns = [
     path('', include('apps.core.urls')),
     path('curricula/', include('apps.curricula.urls')),
     path('departments/', include('apps.departments.urls')),
+    path('professors/', include('apps.professors.urls', namespace='professors')),
 ]

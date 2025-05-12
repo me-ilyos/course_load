@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Professor O'chirishni Tasdiqlash{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url 'academic_admin_dashboard' %}">Boshqaruv Paneli</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'professors:professor_list' %}">Professorlar</a></li>
+    <li class="breadcrumb-item active" aria-current="page">O'chirishni Tasdiqlash</li>
+{% endblock %}
+
+{% block user_name %}
+    {{ user.get_full_name|default:user.username|default:'Admin' }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h4 class="card-title mb-0"><i class="bi bi-exclamation-triangle-fill"></i> O'chirishni Tasdiqlash</h4>
+        </div>
+        <div class="card-body">
+            <p>Haqiqatan ham professor <strong>{{ object.user.get_full_name }} ({{ object.user.username }})</strong> ni o'chirmoqchimisiz?</p>
+            <p class="text-danger"><strong>Diqqat:</strong> Bu amal qaytarilmaydi va professor bilan bog'liq barcha ma'lumotlar (jumladan, foydalanuvchi hisobi) o'chiriladi.</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Ha, O'chirish</button>
+                <a href="{% url 'professors:professor_list' %}" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Bekor Qilish</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

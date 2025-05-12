@@ -17,6 +17,11 @@ class Department(models.Model):
         limit_choices_to={'user_type': 'department_head'},
         help_text="Professor who is the head of this department"
     )
+    # Calculated fields for total assigned hours
+    total_lecture_hours = models.PositiveIntegerField(default=0, editable=False, help_text="Total lecture hours assigned from all curricula")
+    total_practice_hours = models.PositiveIntegerField(default=0, editable=False, help_text="Total practice hours assigned from all curricula")
+    total_laboratory_hours = models.PositiveIntegerField(default=0, editable=False, help_text="Total laboratory hours assigned from all curricula")
+    total_seminar_hours = models.PositiveIntegerField(default=0, editable=False, help_text="Total seminar hours assigned from all curricula")
     
     def __str__(self):
         return f"{self.code} - {self.title}"

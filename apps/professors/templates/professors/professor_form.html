@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if object %}Professor Tahrirlash{% else %}Yangi Professor Qo'shish{% endif %}
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url 'academic_admin_dashboard' %}">Boshqaruv Paneli</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'professors:professor_list' %}">Professorlar</a></li>
+    <li class="breadcrumb-item active" aria-current="page">
+        {% if object %}Tahrirlash: {{ object.user.get_full_name }}{% else %}Yangi Professor Qo'shish{% endif %}
+    </li>
+{% endblock %}
+
+{% block user_name %}
+    {{ user.get_full_name|default:user.username|default:'Admin' }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title">
+                {% if object %}
+                    <i class="bi bi-pencil-square"></i> Professor Ma'lumotlarini Tahrirlash: {{ object.user.get_full_name }}
+                {% else %}
+                    <i class="bi bi-person-plus-fill"></i> Yangi Professor Qo'shish
+                {% endif %}
+            </h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <h5>Asosiy Ma'lumotlar (Foydalanuvchi)</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.username|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.email|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.first_name|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.last_name|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.password|as_crispy_field }}
+                        {% if object %}<small class="form-text text-muted">Parolni o'zgartirish uchun kiriting.</small>{% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.confirm_password|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.user_type|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.department_user|as_crispy_field }}
+                    </div>
+                </div>
+
+                <hr>
+
+                <h5>Professor Profili</h5>
+                 <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.employee_id|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.title|as_crispy_field }}
+                    </div>
+                </div>
+                 <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.department_professor|as_crispy_field }}
+                    </div>
+                     <div class="col-md-6 mb-3">
+                        {{ form.employment_type|as_crispy_field }}
+                    </div>
+                </div>
+                 <div class="row">
+                    <div class="col-md-6 mb-3">
+                         {{ form.is_degree_holder|as_crispy_field }}
+                    </div>
+                 </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle-fill me-1"></i> Saqlash
+                    </button>
+                    <a href="{% url 'professors:professor_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-1"></i> Bekor Qilish
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

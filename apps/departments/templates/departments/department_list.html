@@ -45,17 +45,33 @@
                 <table id="departmentsTable" class="table table-hover table-striped" style="width:100%;">
                     <thead class="table-light">
                         <tr>
-                            <th scope="col">Kodi</th>
-                            <th scope="col">Nomi</th>
-                            <th scope="col">Kafedra Mudiri</th>
+                            <th>Kodi</th>
+                            <th>Nomi</th>
+                            <th>Kafedra Mudiri</th>
+                            <th class="text-center">Ma'ruza (soat)</th>
+                            <th class="text-center">Amaliy (soat)</th>
+                            <th class="text-center">Laboratoriya (soat)</th>
+                            <th class="text-center">Seminar (soat)</th>
+                            <th class="text-center">Jami Aud. (soat)</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for department in departments %}
                         <tr>
-                            <td><a href="{% url 'departments:department_detail' department.pk %}">{{ department.code }}</a></td>
-                            <td><a href="{% url 'departments:department_detail' department.pk %}">{{ department.title }}</a></td>
-                            <td>{{ department.department_head.get_full_name|default:"Tayinlanmagan" }}</td>
+                            <td>{{ department.code }}</td>
+                            <td>
+                                <a href="{% url 'departments:department_detail' pk=department.pk %}" title="View Details">
+                                    {{ department.title }}
+                                </a>
+                            </td>
+                            <td>{{ department.department_head.get_full_name|default:"-" }}</td>
+                            <td class="text-center">{{ department.total_lecture_hours }}</td>
+                            <td class="text-center">{{ department.total_practice_hours }}</td>
+                            <td class="text-center">{{ department.total_laboratory_hours }}</td>
+                            <td class="text-center">{{ department.total_seminar_hours }}</td>
+                            <td class="text-center fw-bold">
+                                {{ department.total_lecture_hours|add:department.total_practice_hours|add:department.total_laboratory_hours|add:department.total_seminar_hours }}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

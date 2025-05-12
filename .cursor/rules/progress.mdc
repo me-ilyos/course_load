@@ -160,6 +160,90 @@ The custom User model provides the foundation for role-based access control thro
 - **Templates (`apps/curricula/templates/curricula/upload_excel.html`):**
     - Basic template for uploading an Excel file.
 
+## Features Implemented
+
+### Departments App
+- **Models (`apps/departments/models.py`):**
+    - `Department` model defined with fields: `title`, `code`, `department_head`.
+    - Added `total_lecture_hours`, `total_practice_hours`, `total_laboratory_hours`, `total_seminar_hours` fields (all `PositiveIntegerField`, `default=0`, `editable=False`) to store aggregated hours from assigned courses.
+- **Views (`apps/departments/views.py`):**
+    - `DepartmentListView`: Class-based view displaying a list of departments with pagination and create/edit form handling (via modals).
+    - `DepartmentDetailView`: Class-based view showing details for a specific department, including calculated total hours and assigned professors. **Context updated to also fetch and structure all assigned courses/slots from all curricula for display.**
+    - Function-based views (`department_create_view`, `department_update_view`, `department_delete_view`) primarily for handling AJAX requests from modal forms in the list view.
+- **Forms (`apps/departments/forms.py`):**
+    - `DepartmentForm`: A `ModelForm` for creating and updating `Department` instances, including validation.
+- **Templates (`apps/departments/templates/departments/`):**
+    - `department_list.html`: Main template displaying the list, including modal forms for create/update/delete. Table updated to show total calculated lecture, practice, laboratory, and seminar hours for each department. Added links to the detail view. **Removed the 'Actions' column and added a 'Total Classroom Hours' column.**
+    - `department_detail.html`: New template to display detailed information about a department, including basic info, department head, total calculated hours, and a list of assigned professors. **Added a new table displaying details of courses/slots assigned to this department (Curriculum, Year, Type, Code/Slot, Title, Hours).**
+    - `_department_form.html`: Partial template for the department form (used in modals).
+    - `_confirm_delete.html`: Partial template for the delete confirmation modal.
+- **URLs (`apps/departments/urls.py`):**
+    - URL patterns defined for the department CRUD views and detail view.
+- **Admin (`apps/departments/admin.py`):**
+    - `Department` model registered with the Django admin site for easy management.
+- **Utils (`apps/departments/utils.py`):**
+    - Added `recalculate_department_hours(department_id)` function: Queries all curricula, sums hours for courses/slots assigned to the given department ID, and updates the department's total hour fields.
+
+### Curricula App
+- **Models (`apps/curricula/models.py`):**
+    - `Curriculum` model defined with fields: `code`, `title`, `start_year`, `degree`, `duration`, `data` (JSONField to store parsed course info), `source_excel_file` (FileField).
+- **Views (`apps/curricula/views.py`):**
+    - `CurriculumListView`: Displays a list of curricula using `ListView`.
+    - `CurriculumDetailView`: Displays details of a curriculum, including mandatory and selective courses parsed from the `data` field. Uses DataTables for course display.
+    - `curriculum_create_view`: Handles creation of new curricula, including parsing an uploaded Excel file using `parser.py` and saving the structured data into the `data` JSONField.
+    - `update_course_data_view`: An API endpoint (POST request) to update specific fields (like title, hours, credits, **department_id**) within the `data` JSONField for a given course/slot in a curriculum. **Crucially, after successfully updating a `department_id`, this view now calls `recalculate_department_hours` for the old and new departments to keep their aggregate hours correct.**
+- **Forms (`apps/curricula/forms.py`):**
+    - `CurriculumForm`: `ModelForm` for creating curricula, handles file upload.
+- **Templates (`apps/curricula/templates/curricula/`):**
+    - `curriculum_list.html`: Displays the list of curricula and includes the creation form.
+    - `curriculum_detail.html`: Detailed view with DataTables for mandatory and selective courses. Implements inline editing for course data fields (title, hours, credits, department) using JavaScript (jQuery, Fetch API) that interacts with `update_course_data_view`. Department assignment uses a dropdown populated dynamically.
+- **Parser (`apps/curricula/parser.py`):**
+    - Contains `extract_mandatory_courses` and `extract_selective_courses` functions to parse data from a specific Excel template format using `pandas`.
+- **Template Tags (`apps/curricula/templatetags/curriculum_extras.py`):**
+    - Custom tags like `get_item` used in templates.
+- **URLs (`apps/curricula/urls.py`):**
+    - URL patterns for curriculum list, detail, create, and the update API endpoint.
+
+### Core App
+- **Models (`apps/core/models.py`):**
+    - Custom `User` model inheriting from `AbstractUser`, adding `user_type` (Professor, Department Head, Admin).
+- **Views (`apps/core/views.py`):**
+    - `home_view`: Basic home page view.
+    - `login_view`: Custom login view.
+    - `logout_view`: Custom logout view.
+- **URLs (`apps/core/urls.py`):**
+    - URL patterns for core views.
+
+### Project Configuration (`config/`)
+- **`settings.py`**: Standard Django settings, configured apps, database (SQLite), static files, custom user model (`AUTH_USER_MODEL`).
+- **`urls.py`**: Main project URL routing, includes app-specific URLs.
+
+## What's Left to Build / Next Steps
+- **Professor Management:** Implement CRUD for Professors.
+- **Course Assignment to Professors:** Link courses (from curriculum data) to specific professors.
+- **Load Calculation:** Calculate teaching loads based on assigned courses.
+- **Reporting:** Generate reports on departmental loads, professor loads, etc.
+- **Refinement & Testing:** Add more robust testing, improve UI/UX, handle edge cases in parsing/data handling.
+- **Signal Handling:** Consider using signals (e.g., `post_save`, `post_delete` on `Curriculum`) to trigger department hour recalculation upon curriculum creation/deletion for robustness, in addition to the current update view trigger.
+- **Department Detail View Enhancements:** The detail view could be enhanced with more interactive elements or links.
+- **Clean up Department Views:** Refactor `departments/views.py` to clarify the roles of CBVs and FBVs, potentially consolidating AJAX handling.
+
+## Current Status
+- Core setup with custom user model is complete.
+- Department CRUD functionality is implemented (List, Detail via CBV; Create/Update/Delete via FBV AJAX handlers and modals).
+- Curriculum CRUD is implemented, including Excel parsing and storage of course data in JSON.
+- Inline editing of curriculum course data (including department assignment) is functional via the detail view and a dedicated API endpoint.
+- Department hour totals are automatically recalculated and stored whenever a course's department assignment is changed via the curriculum detail page.
+- Department list and detail views now display the calculated total hours (lecture, practice, lab, seminar) for each department.
+- **Department list view now shows total classroom hours sum and hides the actions column.**
+- **Department detail view now includes a table listing all assigned courses/slots from different curricula.**
+
+## Known Issues
+- Excel parser (`parser.py`) is tightly coupled to a specific template format. Errors in the Excel file might break parsing. Needs more robust error handling.
+- Department hour recalculation currently only happens when assignments are changed via `update_course_data_view`. If curricula are created/deleted or the `data` field is modified *outside* this view (e.g., in admin), the totals might become stale. Implementing signal handlers would address this.
+- Limited test coverage.
+- Potential confusion between class-based views (ListView, DetailView) and function-based views (create, update, delete AJAX handlers) in `departments/views.py`. This could be refactored for clarity.
+
 ---
 
 **All features are implemented minimally and directly according to requirements. No overengineering or unnecessary abstraction is present. The codebase is clean, maintainable, and ready for further MVP development.**

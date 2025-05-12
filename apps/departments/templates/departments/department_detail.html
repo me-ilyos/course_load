@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ department.title }} - Kafedra Tafsilotlari{% endblock %}
+{% block title %}{{ department.title }} - Department Details{% endblock %}
 
 {% block extra_head_css %}
 {{ block.super }}
@@ -8,106 +8,104 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'departments:department_list' %}">Kafedralar</a></li>
-<li class="breadcrumb-item active" aria-current="page">{{ department.title|truncatechars:50 }}</li>
+<li class="breadcrumb-item"><a href="{% url 'departments:department_list' %}">Departments</a></li>
+<li class="breadcrumb-item active" aria-current="page">{{ department.title }}</li>
 {% endblock %}
 
-{% block user_name %}{{ user.username|default:'Foydalanuvchi' }}{% endblock %}
+{% block user_name %}{{ user.username|default:'User' }}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h2">{{ department.title }}</h1>
+    <h1 class="h2">{{ department.title }} ({{ department.code }})</h1>
     <div>
-        {# Add Edit/Delete buttons later if needed #}
-        {# <a href="#" class="btn btn-outline-secondary me-2"><i class="bi bi-pencil-fill me-1"></i> Tahrirlash</a> #}
-        {# <a href="#" class="btn btn-outline-danger"><i class="bi bi-trash-fill me-1"></i> O'chirish</a> #}
+        {# Add Edit/Delete buttons if needed later #}
+        <a href="{% url 'departments:department_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to List</a>
     </div>
 </div>
 
 <div class="card mb-4">
     <div class="card-header">
-        <h5 class="card-title mb-0">Umumiy ma'lumotlar</h5>
+        <h5 class="card-title mb-0">Department Information</h5>
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-6">
-                <p><strong>Kodi:</strong> {{ department.code }}</p>
-                <p><strong>Nomi:</strong> {{ department.title }}</p>
+                <p><strong>Code:</strong> {{ department.code }}</p>
+                <p><strong>Title:</strong> {{ department.title }}</p>
+                <p><strong>Department Head:</strong> {{ department.department_head.get_full_name|default:'Not Assigned' }}</p>
             </div>
             <div class="col-md-6">
-                <p><strong>Kafedra Mudiri:</strong> 
-                    {% if department.department_head %}
-                        {{ department.department_head.get_full_name }} ({{ department.department_head.email }})
-                    {% else %}
-                        Tayinlanmagan
-                    {% endif %}
-                </p>
+                <h6 class="mt-3 mt-md-0"><strong>Total Calculated Hours (from Curricula):</strong></h6>
+                <p><strong>Lecture:</strong> {{ department.total_lecture_hours }} hours</p>
+                <p><strong>Practice:</strong> {{ department.total_practice_hours }} hours</p>
+                <p><strong>Laboratory:</strong> {{ department.total_laboratory_hours }} hours</p>
+                <p><strong>Seminar:</strong> {{ department.total_seminar_hours }} hours</p>
+                {% with total_hours=department.total_lecture_hours|add:department.total_practice_hours|add:department.total_laboratory_hours|add:department.total_seminar_hours %}
+                <p><strong>Total Classroom:</strong> {{ total_hours }} hours</p>
+                {% endwith %}
             </div>
         </div>
     </div>
 </div>
 
-<div class="card">
+<div class="card mb-4">
     <div class="card-header">
-        <h5 class="card-title mb-0">Kafedra O'qituvchilari</h5>
+        <h5 class="card-title mb-0">Assigned Professors</h5>
     </div>
     <div class="card-body">
-        {% if department.department_head %}
+        {% if professor_profiles %}
+            <ul class="list-group list-group-flush">
+                {% for profile in professor_profiles %}
+                    <li class="list-group-item">{{ profile.user.get_full_name }} ({{ profile.user.username }}) - {{ profile.position|default:'No position specified' }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">No professors are currently assigned to this department.</p>
+        {% endif %}
+    </div>
+</div>
+
+{# New Card for Assigned Courses #}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Assigned Courses/Slots</h5>
+    </div>
+    <div class="card-body">
+        {% if assigned_courses %}
             <div class="table-responsive">
-                <table id="professorsTable" class="table table-hover table-striped" style="width:100%;">
+                <table class="table table-sm table-bordered table-striped table-hover">
                     <thead class="table-light">
                         <tr>
-                            <th scope="col">Ism Familiya</th>
-                            <th scope="col">Email</th>
-                            <th scope="col">Lavozimi (User)</th>
-                            <th scope="col">Unvoni (Prof)</th>
-                            <th scope="col">Bandlik</th>
-                            <th scope="col">Darajali?</th>
-                            <th scope="col">Joriy Soatlari</th>
+                            <th>O'quv reja</th>
+                            <th>Yil</th>
+                            <th>Turi</th>
+                            <th>Kod/Blok</th>
+                            <th>Nomi/Tavsif</th>
+                            <th class="text-center">Ma'ruza</th>
+                            <th class="text-center">Amaliy</th>
+                            <th class="text-center">Lab</th>
+                            <th class="text-center">Seminar</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% if department.department_head %}
-                        {% with head_profile=department.department_head.professor_profile %}
+                        {% for course in assigned_courses %}
                         <tr>
-                            <td>{{ department.department_head.get_full_name }}</td>
-                            <td>{{ department.department_head.email }}</td>
-                            <td>{{ department.department_head.get_user_type_display }}</td>
-                            <td>{{ head_profile.title|default:"N/A" }}</td>
-                            <td>{{ head_profile.get_employment_type_display|default:"N/A" }}</td>
-                            <td>{% if head_profile.is_degree_holder %}Ha{% else %}Yo'q{% endif %}</td>
-                            <td><span class="badge bg-secondary">Ma'lumot yo'q</span></td>
+                            <td>{{ course.curriculum_title }} ({{ course.curriculum_code }})</td>
+                            <td>{{ course.curriculum_year }}</td>
+                            <td>{{ course.course_type }}</td>
+                            <td>{{ course.course_code }}</td>
+                            <td>{{ course.course_title }}</td>
+                            <td class="text-center">{{ course.hours.lecture|default:0 }}</td>
+                            <td class="text-center">{{ course.hours.practice|default:0 }}</td>
+                            <td class="text-center">{{ course.hours.laboratory|default:0 }}</td>
+                            <td class="text-center">{{ course.hours.seminar|default:0 }}</td>
                         </tr>
-                        {% endwith %}
-                        {% endif %}
-
-                        {% for profile in professor_profiles %}
-                            {% if profile.user != department.department_head %} {# Avoid listing the head twice if they are in this list #}
-                                <tr>
-                                    <td>{{ profile.user.get_full_name }}</td>
-                                    <td>{{ profile.user.email }}</td>
-                                    <td>{{ profile.user.get_user_type_display }}</td>
-                                    <td>{{ profile.title }}</td>
-                                    <td>{{ profile.get_employment_type_display }}</td>
-                                    <td>{% if profile.is_degree_holder %}Ha{% else %}Yo'q{% endif %}</td>
-                                    <td><span class="badge bg-secondary">Ma'lumot yo'q</span></td>
-                                </tr>
-                            {% endif %}
-                        {% empty %}
-                            {% if not department.department_head %}
-                                <tr>
-                                    <td colspan="7" class="text-center">Bu kafedraga biriktirilgan o'qituvchilar topilmadi.</td>
-                                </tr>
-                            {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            <p class="mt-3 fst-italic"><small><strong>Izoh:</strong> O'qituvchilarning dars soatlari uchun qo'shimcha integratsiya talab etiladi.</small></p>
         {% else %}
-            <div class="alert alert-info" role="alert">
-                Bu kafedraga biriktirilgan o'qituvchilar (jumladan, mudir) haqida ma'lumot topilmadi.
-            </div>
+            <p class="text-muted">No courses or selective course slots are currently assigned to this department from any curriculum.</p>
         {% endif %}
     </div>
 </div>

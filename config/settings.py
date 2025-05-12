@@ -35,6 +35,10 @@ INSTALLED_APPS = [
     'apps.curricula.apps.CurriculaConfig',
     'apps.departments',
     'apps.professors',
+    
+    # Third-party apps
+    'crispy_forms',
+    'crispy_bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -125,3 +129,7 @@ AUTH_USER_MODEL = 'core.User'
 # Login URLs
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = '/'
+
+# Crispy Forms Configuration
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"

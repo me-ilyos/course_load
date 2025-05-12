@@ -195,22 +195,22 @@
 </head>
 <body id="page-body"> 
     <nav class="sidebar" id="sidebar">
-        <a class="navbar-brand d-flex align-items-center" href="#"> {# Consider using url templatetag here later e.g. {% url 'dashboard' %} #}
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'academic_admin_dashboard' %}">
             <i class="bi bi-building"></i> 
             <span class="brand-text">CourseLoad</span>
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#"><i class="bi bi-house-door-fill"></i> <span class="link-text">Dashboard</span></a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'academic_admin_dashboard' or request.resolver_match.url_name == 'department_head_dashboard' or request.resolver_match.url_name == 'professor_dashboard' %}active{% endif %}" aria-current="page" href="{% url 'academic_admin_dashboard' %}"><i class="bi bi-house-door-fill"></i> <span class="link-text">Dashboard</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'curricula:curriculum_list' %}"><i class="bi bi-journals"></i> <span class="link-text">O'quv Rejalar</span></a>
+                <a class="nav-link {% if request.resolver_match.app_name == 'curricula' %}active{% endif %}" href="{% url 'curricula:curriculum_list' %}"><i class="bi bi-journals"></i> <span class="link-text">O'quv Rejalar</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#"><i class="bi bi-people-fill"></i> <span class="link-text">Professorlar</span></a>
+                <a class="nav-link {% if request.resolver_match.app_name == 'professors' %}active{% endif %}" href="{% url 'professors:professor_list' %}"><i class="bi bi-people-fill"></i> <span class="link-text">Professorlar</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'departments:department_list' %}"><i class="bi bi-building"></i> <span class="link-text">Kafedralar</span></a>
+                <a class="nav-link {% if request.resolver_match.app_name == 'departments' %}active{% endif %}" href="{% url 'departments:department_list' %}"><i class="bi bi-building"></i> <span class="link-text">Kafedralar</span></a>
             </li>
 
             <li class="nav-item mt-auto" style="padding: 0 1.5rem;">
@@ -218,7 +218,7 @@
                  <a class="nav-link" href="#"><i class="bi bi-gear-fill"></i> <span class="link-text">Settings</span></a>
             </li>
              <li class="nav-item">
-                 <a class="nav-link" href="#"><i class="bi bi-box-arrow-left"></i> <span class="link-text">Logout</span></a>
+                 <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-left"></i> <span class="link-text">Logout</span></a>
             </li>
         </ul>
     </nav>
@@ -232,8 +232,8 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
                         {% block breadcrumb %}
-                        <li class="breadcrumb-item"><a href="#">Home</a></li> {# Use url tag later #}
-                        <li class="breadcrumb-item active" aria-current="page">Page Title</li>
+                        <li class="breadcrumb-item"><a href="{% url 'academic_admin_dashboard' %}">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Page</li>
                         {% endblock %}
                     </ol>
                 </nav>

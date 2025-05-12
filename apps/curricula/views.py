@@ -7,6 +7,7 @@ from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView
 from .models import Curriculum
 from apps.departments.models import Department # Import Department model
+from apps.departments.utils import recalculate_department_hours # Import the recalculation utility
 from .forms import CurriculumForm
 from django.contrib import messages
 from django.urls import reverse_lazy
@@ -164,10 +165,12 @@ def update_course_data_view(request, pk):
         
         item_found = False
         item_to_update = None
+        original_department_id = None # Store original department ID
 
         for course_item_candidate in mandatory_courses:
             if isinstance(course_item_candidate, dict) and course_item_candidate.get('course_code') == item_identifier:
                 item_to_update = course_item_candidate
+                original_department_id = item_to_update.get('department_id') # Get original ID before change
                 item_found = True
                 break
         
@@ -178,6 +181,7 @@ def update_course_data_view(request, pk):
                 for slot_item_candidate in selective_course_slots:
                     if isinstance(slot_item_candidate, dict) and slot_item_candidate.get('slot_number') == target_slot_number:
                         item_to_update = slot_item_candidate
+                        original_department_id = item_to_update.get('department_id') # Get original ID before change
                         item_found = True
                         break
             except ValueError: 
@@ -253,7 +257,31 @@ def update_course_data_view(request, pk):
                 )
                 item_to_update['total_hours'] = new_total_hours
         
+        new_department_id = item_to_update.get('department_id') # Get new ID after potential update
+
         curriculum.save()
+        
+        # --- Trigger Department Hour Recalculation --- 
+        if field_name == 'department_id': # Only recalculate if department was the field changed
+            try:
+                original_dept_int = int(original_department_id) if original_department_id is not None else None
+            except (ValueError, TypeError):
+                original_dept_int = None
+                
+            try:
+                new_dept_int = int(new_department_id) if new_department_id is not None else None
+            except (ValueError, TypeError):
+                new_dept_int = None
+                
+            if original_dept_int != new_dept_int: # Check if department actually changed
+                if original_dept_int is not None:
+                    print(f"Recalculating hours for original department: {original_dept_int}")
+                    recalculate_department_hours(original_dept_int)
+                if new_dept_int is not None:
+                    print(f"Recalculating hours for new department: {new_dept_int}")
+                    recalculate_department_hours(new_dept_int)
+        # --- End Recalculation Trigger ---
+        
         return JsonResponse({'status': 'success', 'message': 'Data updated successfully.', 'updated_item': item_to_update})
 
     except json.JSONDecodeError:
