@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView
 from .models import Curriculum
+from apps.departments.models import Department # Import Department model
 from .forms import CurriculumForm
 from django.contrib import messages
 from django.urls import reverse_lazy
@@ -85,9 +86,53 @@ class CurriculumDetailView(DetailView):
     model = Curriculum
     template_name = 'curricula/curriculum_detail.html'
     context_object_name = 'curriculum'
-    # Note: For DetailView, typically you would use DetailView as base class
-    # and it uses a slug or pk from URL to fetch a single object.
-    # If this is intended to be a DetailView, it should inherit from django.views.generic.DetailView
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        curriculum = self.get_object() # Get the curriculum object
+        departments = Department.objects.all().order_by('title')
+        
+        departments_values = list(departments.values('id', 'title', 'code'))
+        context['departments_json_string'] = json.dumps(departments_values)
+        context['departments_qs'] = departments
+
+        department_map = {dept.id: dept.title for dept in departments}
+        
+        # Initialize overall hour totals
+        overall_totals = {
+            'lecture': 0,
+            'practice': 0,
+            'laboratory': 0,
+            'seminar': 0
+        }
+
+        if curriculum.data:
+            mandatory_courses = curriculum.data.get('mandatory_courses', [])
+            selective_courses = curriculum.data.get('selective_courses', []) # These are slots
+
+            course_lists_to_process = [mandatory_courses, selective_courses]
+
+            for course_list in course_lists_to_process:
+                for item in course_list: # item can be a course or a selective slot
+                    if isinstance(item, dict):
+                        # Augment with department title (for display in tables)
+                        dept_id = item.get('department_id')
+                        if dept_id is not None:
+                            try:
+                                item['department_title'] = department_map.get(int(dept_id))
+                            except (ValueError, TypeError):
+                                item['department_title'] = None
+                        
+                        # Sum hours for overall totals
+                        hours_data = item.get('hours', {})
+                        if isinstance(hours_data, dict):
+                            overall_totals['lecture'] += int(hours_data.get('lecture', 0) or 0)
+                            overall_totals['practice'] += int(hours_data.get('practice', 0) or 0)
+                            overall_totals['laboratory'] += int(hours_data.get('laboratory', 0) or 0)
+                            overall_totals['seminar'] += int(hours_data.get('seminar', 0) or 0)
+            
+        context['overall_hour_totals'] = overall_totals
+        return context
 
 @require_POST
 @csrf_protect
@@ -96,24 +141,30 @@ def update_course_data_view(request, pk):
         curriculum = get_object_or_404(Curriculum, pk=pk)
         data = json.loads(request.body)
         
-        item_identifier = data.get('course_code') # This can be actual course_code or "selective_slot_{slot_num}"
+        item_identifier = data.get('course_code')
         field_name = data.get('field_name')
         new_value_str = data.get('new_value')
 
-        if not all([item_identifier, field_name, new_value_str is not None]):
-            return JsonResponse({'status': 'error', 'message': 'Missing data in request.'}, status=400)
+        if not item_identifier or not field_name:
+            return JsonResponse({'status': 'error', 'message': 'Missing item_identifier or field_name in request.'}, status=400)
+
+        # Allow new_value_str to be None only if field_name is 'department_id' (for clearing)
+        if new_value_str is None and field_name != 'department_id':
+            return JsonResponse({'status': 'error', 'message': f'Missing new_value for field {field_name}.'}, status=400)
+        
+        # If new_value_str is None and it's for department_id, treat as empty string for downstream logic before conversion
+        if new_value_str is None and field_name == 'department_id':
+            new_value_str = ''
 
         if not curriculum.data or not isinstance(curriculum.data, dict):
-            curriculum.data = {"mandatory_courses": [], "selective_courses": []} # Ensure basic structure
+            curriculum.data = {"mandatory_courses": [], "selective_courses": []}
 
         mandatory_courses = curriculum.data.get('mandatory_courses', [])
         selective_course_slots = curriculum.data.get('selective_courses', [])
         
         item_found = False
         item_to_update = None
-        # No specific item_type needed here for now, logic handles course_item or slot_item directly
 
-        # Try to find in mandatory courses
         for course_item_candidate in mandatory_courses:
             if isinstance(course_item_candidate, dict) and course_item_candidate.get('course_code') == item_identifier:
                 item_to_update = course_item_candidate
@@ -126,61 +177,66 @@ def update_course_data_view(request, pk):
                 target_slot_number = int(slot_number_str)
                 for slot_item_candidate in selective_course_slots:
                     if isinstance(slot_item_candidate, dict) and slot_item_candidate.get('slot_number') == target_slot_number:
-                        item_to_update = slot_item_candidate # The slot itself is updated
+                        item_to_update = slot_item_candidate
                         item_found = True
                         break
-            except ValueError: # if slot_number_str is not an int
-                pass # item_found remains False
+            except ValueError: 
+                pass 
 
-        if not item_found or item_to_update is None: # Check item_to_update is not None
+        if not item_found or item_to_update is None: 
             return JsonResponse({'status': 'error', 'message': 'Course or slot not found.'}, status=404)
 
-        # Proceed with updating item_to_update (which is either a course dict or a slot dict)
         keys = field_name.split('.')
-        target_dict_for_update = item_to_update # Renamed for clarity
-        original_field_value = None
-
-        # Navigate to the target dictionary for update
-        temp_target = target_dict_for_update
+        temp_target = item_to_update 
+        
         for i, key_part in enumerate(keys[:-1]):
             if key_part not in temp_target or not isinstance(temp_target[key_part], dict):
-                # If path doesn't exist for 'hours' or 'credits', create it.
-                if key_part in ['hours', 'credits'] and (key_part not in temp_target or not isinstance(temp_target.get(key_part), dict)):
+                if key_part in ['hours', 'credits']:
                     temp_target[key_part] = {}
-                elif key_part.isdigit() and keys[i-1] == 'credits' and (key_part not in temp_target or not isinstance(temp_target.get(key_part), (int,str,float))): # for credits.1, credits.2 etc.
-                     pass # Will be set directly
                 else:
-                    return JsonResponse({'status': 'error', 'message': f'Invalid field path for assignment: {field_name}'}, status=400)
+                    return JsonResponse({'status': 'error', 'message': f'Invalid field path component: {key_part} in {field_name}'}, status=400)
             temp_target = temp_target[key_part]
         
         original_field_value_at_key = temp_target.get(keys[-1])
         
-        # Determine the correct type for the new_value
-        new_value = new_value_str
-        # Adjusted numeric field check to be more general or specific to known fields
-        is_numeric_field = keys[-1] in ['total_hours', 'lecture', 'practice', 'laboratory', 'seminar', 'independent', 'total_credits'] or \
-                           (keys[0] == 'credits' and keys[-1].isdigit()) # e.g. credits.1, credits.2
+        new_value = new_value_str 
         
-        is_hour_component = field_name.startswith('hours.') and keys[-1] in ['lecture', 'practice', 'laboratory', 'seminar', 'independent']
+        # Corrected is_numeric_field check for clarity and to avoid syntax error
+        last_key = keys[-1]
+        is_numeric_field = (last_key in ['total_hours', 'lecture', 'practice', 'laboratory', 'seminar', 'independent', 'total_credits']) or \
+                           (len(keys) > 1 and keys[0] == 'credits' and last_key.isdigit())
+        
+        is_hour_component = field_name.startswith('hours.') and last_key in ['lecture', 'practice', 'laboratory', 'seminar', 'independent']
 
-        if is_numeric_field:
+        if field_name == 'department_id':
+            if not new_value_str.strip(): # Empty string or spaces only
+                new_value = None  # Intend to remove/clear the department_id
+            else:
+                try:
+                    new_value = int(new_value_str)
+                except ValueError:
+                    return JsonResponse({'status': 'error', 'message': 'Invalid department ID format. Must be an integer or empty.'}, status=400)
+        elif is_numeric_field:
             try:
                 if new_value_str.strip() == '' or new_value_str.strip() == '-':
                     new_value = 0 
                 else:
                     new_value = int(new_value_str)
             except ValueError:
-                return JsonResponse({'status': 'error', 'message': f'Invalid number format for {field_name}.'}, status=400)
-        elif field_name == 'course_title': # course_title is only for mandatory courses
-            new_value = str(new_value_str)
-        # Add other type conversions if necessary for other fields
+                return JsonResponse({'status': 'error', 'message': f'Invalid number format for {field_name}. Expected integer.'}, status=400)
+        elif field_name == 'course_title': 
+            new_value = str(new_value_str) # Ensure it's a string
+        # else: new_value remains new_value_str (e.g. for other potential string fields)
 
-        # Assign the new value
-        temp_target[keys[-1]] = new_value
+        # Assign the new value or remove the key if new_value is None (specifically for department_id)
+        if new_value is None and field_name == 'department_id':
+            if last_key in temp_target:
+                del temp_target[last_key]
+        else:
+            temp_target[last_key] = new_value
         
-        # If an hour component was updated, recalculate total_hours for the item_to_update
-        if is_hour_component and new_value != original_field_value_at_key:
-            hours_data = target_dict_for_update.get('hours', {})
+        if is_hour_component and new_value != original_field_value_at_key: # Check for actual change
+            hours_data = item_to_update.get('hours', {})
             new_total_hours = (
                 int(hours_data.get('lecture', 0) or 0) + 
                 int(hours_data.get('practice', 0) or 0) + 
@@ -188,11 +244,10 @@ def update_course_data_view(request, pk):
                 int(hours_data.get('seminar', 0) or 0) + 
                 int(hours_data.get('independent', 0) or 0)
             )
-            target_dict_for_update['total_hours'] = new_total_hours
-        # No break needed here as we've already found and are processing item_to_update
+            item_to_update['total_hours'] = new_total_hours
         
         curriculum.save()
-        return JsonResponse({'status': 'success', 'message': 'Data updated successfully.'})
+        return JsonResponse({'status': 'success', 'message': 'Data updated successfully.', 'updated_item': item_to_update})
 
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON in request.'}, status=400)
